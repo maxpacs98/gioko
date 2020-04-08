@@ -1,0 +1,14 @@
+{
+  "name": "gioko",
+  "version": "1.0.0",
+  "description": "A game for our class",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Horea & Alex",
+  "license": "ISC",
+  "dependencies": {
+    "phaser": "^3.22.0"
+  }
+}
