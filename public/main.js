@@ -1,3 +1,13 @@
+let enemies = [], socket;
+function playerById(id) {
+    for (let i = 0; i < enemies.length; i++) {
+        if (enemies[i].player.name === id) {
+            return enemies[i];
+        }
+    }
+    return false;
+}
+
 class GameScene extends Phaser.Scene {
     constructor() {
         super('GameScene');
@@ -15,6 +25,7 @@ class GameScene extends Phaser.Scene {
         this.load.image('star', 'assets/star2.png');
         this.load.image('bigStar', 'assets/star3.png');
         this.load.image('ship', 'assets/shmup-ship2.png');
+        this.load.image('enemyShip', 'assets/shmup-baddie3.png');
         this.load.image('bullet', 'assets/bullet6.png');
         this.load.image('jets', 'assets/blue.png');
         this.load.image('flares', 'assets/yellow.png');
@@ -89,9 +100,64 @@ class GameScene extends Phaser.Scene {
         this.cursors = this.input.keyboard.createCursorKeys();
 
         this.text = this.add.text(10, 10, '', {font: '16px Courier', fill: '#00ff00'}).setDepth(1).setScrollFactor(0);
+        socket = io('http://localhost:3000');
+        socket.on('connect', this.onSocketConnected);
+        socket.on('disconnect', this.onSocketDisconnect);
+        socket.on('new player', this.onNewPlayer);
+        socket.on('move player', this.onMovePlayer);
+        socket.on('remove player', this.onRemovePlayer);
+    }
+
+    onRemovePlayer(data) {
+        console.log(`remove player: ${data.id}`);
+        const removePlayer = playerById(data.id);
+        if (!removePlayer) {
+            console.log(`player not found: ${data.id}`);
+            return;
+        }
+        removePlayer.player.kill();
+        enemies.splice(enemies.indexOf(removePlayer), 1);
+    }
+
+    onMovePlayer(data) {
+        console.log(`move player: ${data.id}`);
+        const movePlayer = playerById(data.id);
+        if (!movePlayer) {
+            console.log(`player not found: ${data.id}`);
+            return;
+        }
+        movePlayer.player.x = data.x;
+        movePlayer.player.y = data.y;
+    }
+
+    onNewPlayer(data)
+    {
+        const duplicate = playerById(data.id);
+        if (duplicate) {
+            console.log('duplicate player!');
+            return;
+        }
+        const e = new RemotePlayer(data.id, game, data.x, data.y);
+        enemies.push(e);
+    }
+
+    onSocketDisconnect() {
+        console.log('disconnected from server');
+    }
+
+    onSocketConnected() {
+        console.log('connected to server');
+        enemies.forEach(enemy => enemy.player.kill());
+        socket.emit('new player', {x: 1600, y: 2000});
     }
 
     update(time, delta) {
+        console.log(enemies);
+        for (let i = 0; i < enemies.length; i++) {
+                enemies[i].update();
+                // game.physics.arcade.collide(player, enemies[i].player)
+        }
+
         this.thrust.setPosition(this.player.x, this.player.y);
 
         if (this.cursors.left.isDown) {
