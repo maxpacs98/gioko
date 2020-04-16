@@ -55,5 +55,3 @@ function onMovePlayer(ioClient, player) {
   Object.assign(movePlayer, player);
   io.emit('move player', movePlayer);
 }
-
-exports.plm = io;
