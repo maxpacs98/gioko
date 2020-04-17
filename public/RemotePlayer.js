@@ -1,16 +1,24 @@
 /* global game */
+lastP = {}
 
-var RemotePlayer = function (index, game, startX, startY) {
+var RemotePlayer = function (index, game, startX, startY, p) {
     var x = startX
     var y = startY
 
     this.scene = game.scene.keys.GameScene
     // this.health = 3
     this.alive = true
+    // console.log(p);
+    if (p !== undefined) {
+        this.player = p;
+    } else {
+        this.player = this.scene.impact.add.sprite(startX, startY, 'enemyShip');
+    }
 
-    this.player = this.scene.add.sprite(x, y, 'enemyShip')
 
-    console.log(this.player);
+    // this.player.setMaxVelocity(1000).setFriction(800, 600).setPassiveCollision();
+
+
     // this.player.animations.add('move', [0, 1, 2, 3, 4, 5, 6, 7], 20, true)
     // this.player.animations.add('stop', [3], 20, true)
 
@@ -18,25 +26,38 @@ var RemotePlayer = function (index, game, startX, startY) {
 
     this.player.name = index.toString()
     // game.physics.enable(this.player, Phaser.Physics.ARCADE)
-    // this.player.body.immovable = true
-    // this.player.body.collideWorldBounds = true
+    this.player.body.immovable = true
+    this.player.body.collideWorldBounds = true
 
     // this.player.angle = angle
 
     // this.lastPosition = {x: x, y: y, angle: angle}
-    this.lastPosition = {x: x, y: y}
+    lastP = {x: 1600, y: 200}
 }
 
 RemotePlayer.prototype.update = function () {
-    if (this.player.x !== this.lastPosition.x || this.player.y !== this.lastPosition.y) {
-        this.player.play('move')
-        // this.player.rotation = Math.PI + game.physics.arcade.angleToXY(this.player, this.lastPosition.x, this.lastPosition.y)
-    } else {
-        this.player.play('stop');
+    console.log(this.player.x, lastP.x);
+    if (this.player.x !== lastP.x || this.player.y !== lastP.y) {
+        if (lastP.y - this.player.y > -2) {
+            this.player.setAccelerationY(800);
+        } else if (lastP.y - this.player.y < 2) {
+            this.player.setAccelerationY(-800);
+        } else {
+            this.player.setAccelerationY(0);
+        }
+
+        if (lastP.x - this.player.x > -2) {
+            this.player.setAccelerationX(800);
+            this.player.flipX = false;
+        } else if (lastP.x - this.player.x < 2) {
+            this.player.flipX = true;
+            this.player.setAccelerationX(-800);
+        }
+
+        lastP.x = this.player.x
+        lastP.y = this.player.y
+
     }
-    this.lastPosition.x = this.player.x
-    this.lastPosition.y = this.player.y
-    // this.lastPosition.angle = this.player.angle
 }
 
 window.RemotePlayer = RemotePlayer

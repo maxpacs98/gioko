@@ -1,4 +1,4 @@
-let enemies = [], socket;
+let enemies = [], socket, first = true, prevPos = {x: 1600, y: 200}, player;
 function playerById(id) {
     for (let i = 0; i < enemies.length; i++) {
         if (enemies[i].player.name === id) {
@@ -88,13 +88,16 @@ class GameScene extends Phaser.Scene {
         this.createThrustEmitter();
         this.createBulletEmitter();
 
+
+
         //  Bullets
 
         this.bullets = this.add.group({classType: Bullet, runChildUpdate: true});
 
         //  Add a player ship
 
-        this.player = this.impact.add.sprite(1600, 200, 'ship').setDepth(1);
+        player = this.impact.add.sprite(1600, 200, 'ship').setDepth(1);
+        this.player = player;
         this.player.setMaxVelocity(1000).setFriction(800, 600).setPassiveCollision();
 
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -106,6 +109,8 @@ class GameScene extends Phaser.Scene {
         socket.on('new player', this.onNewPlayer);
         socket.on('move player', this.onMovePlayer);
         socket.on('remove player', this.onRemovePlayer);
+
+        prevPos = {x: 1600, y: 200};
     }
 
     onRemovePlayer(data) {
@@ -115,7 +120,7 @@ class GameScene extends Phaser.Scene {
             console.log(`player not found: ${data.id}`);
             return;
         }
-        removePlayer.player.kill();
+        removePlayer.player.destroy();
         enemies.splice(enemies.indexOf(removePlayer), 1);
     }
 
@@ -132,12 +137,19 @@ class GameScene extends Phaser.Scene {
 
     onNewPlayer(data)
     {
+        // console.log("New player:", data.x, data.y, data.id);
         const duplicate = playerById(data.id);
         if (duplicate) {
             console.log('duplicate player!');
             return;
         }
-        const e = new RemotePlayer(data.id, game, data.x, data.y);
+        let e;
+        if (data.id === socket.id) {
+            e = new RemotePlayer(data.id, game, data.x, data.y, player);
+        }
+        else{
+            e = new RemotePlayer(data.id, game, data.x, data.y);
+        }
         enemies.push(e);
     }
 
@@ -148,14 +160,13 @@ class GameScene extends Phaser.Scene {
     onSocketConnected() {
         console.log('connected to server');
         enemies.forEach(enemy => enemy.player.kill());
-        socket.emit('new player', {x: 1600, y: 2000});
+        enemies = [];
+        socket.emit('new player', {x: 1600, y: 200});
     }
 
     update(time, delta) {
-        console.log(enemies);
         for (let i = 0; i < enemies.length; i++) {
                 enemies[i].update();
-                // game.physics.arcade.collide(player, enemies[i].player)
         }
 
         this.thrust.setPosition(this.player.x, this.player.y);
@@ -219,6 +230,10 @@ class GameScene extends Phaser.Scene {
 
         //  And this camera is 400px wide, so -200
         // this.minimap.scrollX = Phaser.Math.Clamp(this.player.x - 200, 800, 2000);
+        if (player.x != prevPos.x || player.y != prevPos.y) {
+            socket.emit('move player', {x: player.x, y: player.y});
+            prevPos = {x: player.x, y: player.y};
+        }
     }
 
     createThrustEmitter() {
