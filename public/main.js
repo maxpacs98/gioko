@@ -1,5 +1,5 @@
 let enemies = [], socket, first = true, prevPos = {x: 1600, y: 200}, player;
-let faces = [];
+let faces = [], score = 0;
 
 function playerById(id) {
     for (let i = 0; i < enemies.length; i++) {
@@ -113,13 +113,15 @@ class GameScene extends Phaser.Scene {
         socket.on('remove player', this.onRemovePlayer);
         prevPos = {x: 1600, y: 200};
         this.player.setTypeA().setCheckAgainstB().setActiveCollision();
-        faces.forEach(face => face.setTypeB().setCheckAgainstA().setFixedCollision());
+        faces.forEach(face => {
+            face.setTypeB().setCheckAgainstA().setFixedCollision();
+            face.setActiveCollision();
+        });
         this.impact.world.on('collide', this.collide);
     }
 
     collide(bodyA, bodyB, axis) {
-        // alert('Lose');
-        // location.reload();
+        this.scene.start('GameScene');
     }
 
     onRemovePlayer(data) {
@@ -181,6 +183,8 @@ class GameScene extends Phaser.Scene {
             enemies[i].update();
         }
 
+        score += 1/60;
+
         this.thrust.setPosition(this.player.x, this.player.y);
 
         if (this.cursors.left.isDown) {
@@ -238,7 +242,7 @@ class GameScene extends Phaser.Scene {
             }
         }, this);
 
-        this.text.setText(this.player.vel.x);
+        this.text.setText(score);
 
         //  Position the center of the camera on the player
         //  We -400 because the camera width is 800px and
@@ -358,16 +362,22 @@ class GameScene extends Phaser.Scene {
             var y = Phaser.Math.Between(100, 300);
 
             var face = this.impact.add.sprite(x, y, 'face').play('metaleyes');
-            faces.push(face);
 
             face.setLiteCollision().setBounce(1).setBodyScale(0.5);
-            face.setVelocity(Phaser.Math.Between(20, 60), Phaser.Math.Between(20, 60));
+            if (i % 2 === 0) {
+                face.setVelocity(Phaser.Math.Between(20, 60), Phaser.Math.Between(20, 60));
+            }
+            else {
+                face.setVelocity(0);
+            }
 
             if (Math.random() > 0.5) {
                 face.vel.x *= -1;
             } else {
-                face.vel.y *= -1;
+                // face.vel.y *= -1;
             }
+            faces.push(face);
+
         }
     }
     createBulletEmitter() {
