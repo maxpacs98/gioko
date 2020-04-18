@@ -46,12 +46,14 @@ const onNewPlayer = (ioClient, player) => {
 }
 
 function onMovePlayer(ioClient, player) {
-  log(`moving player: ${ioClient.id}`);
+  // log(`moving player: ${ioClient.id}`);
   const movePlayer = players[ioClient.id];
   if (!movePlayer) {
     log(`player not found: ${ioClient.id}`);
     return;
   }
   Object.assign(movePlayer, player);
-  io.emit('move player', movePlayer);
+  ioClient.broadcast.emit('move player', movePlayer);
+  // players.forEach(_ => ioClient.emit('move player', movePlayer));
+  // io.emit('move player', movePlayer);
 }

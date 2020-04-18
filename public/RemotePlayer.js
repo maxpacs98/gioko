@@ -1,9 +1,9 @@
 /* global game */
-lastP = {}
-
 var RemotePlayer = function (index, game, startX, startY, p) {
     var x = startX
     var y = startY
+
+    this.lastP = {x: 1600, y: 200}
 
     this.scene = game.scene.keys.GameScene
     // this.health = 3
@@ -12,7 +12,8 @@ var RemotePlayer = function (index, game, startX, startY, p) {
     if (p !== undefined) {
         this.player = p;
     } else {
-        this.player = this.scene.impact.add.sprite(startX, startY, 'enemyShip');
+        this.player = this.scene.impact.add.sprite(startX, startY, 'enemyShip').setDepth(1);
+        this.player.setMaxVelocity(1000).setFriction(800, 600).setPassiveCollision();
     }
 
 
@@ -32,32 +33,19 @@ var RemotePlayer = function (index, game, startX, startY, p) {
     // this.player.angle = angle
 
     // this.lastPosition = {x: x, y: y, angle: angle}
-    lastP = {x: 1600, y: 200}
+    // lastP =
 }
 
 RemotePlayer.prototype.update = function () {
-    console.log(this.player.x, lastP.x);
-    if (this.player.x !== lastP.x || this.player.y !== lastP.y) {
-        if (lastP.y - this.player.y > -2) {
-            this.player.setAccelerationY(800);
-        } else if (lastP.y - this.player.y < 2) {
-            this.player.setAccelerationY(-800);
-        } else {
-            this.player.setAccelerationY(0);
-        }
-
-        if (lastP.x - this.player.x > -2) {
-            this.player.setAccelerationX(800);
-            this.player.flipX = false;
-        } else if (lastP.x - this.player.x < 2) {
-            this.player.flipX = true;
-            this.player.setAccelerationX(-800);
-        }
-
-        lastP.x = this.player.x
-        lastP.y = this.player.y
-
+    this.player.setX(this.x);
+    this.player.setY(this.y);
+    if (this.lastP.x  > this.x) {
+        this.player.flipX = true;
+    } else if (this.lastP.x  < this.x) {
+        this.player.flipX = false;
     }
+    this.lastP.x = this.x
+    this.lastP.y = this.y
 }
 
 window.RemotePlayer = RemotePlayer
