@@ -121,7 +121,9 @@ class GameScene extends Phaser.Scene {
     }
 
     collide(bodyA, bodyB, axis) {
-        this.scene.start('GameScene');
+        if(score > 1) {
+            this.scene.start('GameScene');
+        }
     }
 
     onRemovePlayer(data) {
