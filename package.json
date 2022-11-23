@@ -12,7 +12,7 @@
     "ecstatic": "^4.1.4",
     "nodemon": "^2.0.3",
     "phaser": "^3.22.0",
-    "socket.io": "^2.3.0",
+    "socket.io": "^2.5.0",
     "window": "^4.2.7"
   }
 }
